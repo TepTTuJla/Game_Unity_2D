@@ -18,7 +18,6 @@ public class DeactivateAttackIdleForEnemies : MonoBehaviour
     public GameObject healthBoss;
     private float _maxHealth = 200f;
     private float _currentHealth;
-    private float _health;
     public float speed = 0.1f;
 
     private void Awake()
@@ -37,7 +36,6 @@ public class DeactivateAttackIdleForEnemies : MonoBehaviour
         _playerPosition = GameObject.FindWithTag("Player").GetComponent<Transform>();
 
         _maxHealth = _boss.maxHealth;
-        _health = _maxHealth;
     }
     
     private void Update()
@@ -79,7 +77,7 @@ public class DeactivateAttackIdleForEnemies : MonoBehaviour
     {
         foreach (var enemy in _listEnemies)
         {
-            enemy.SetIdle();
+            if (enemy) enemy.SetIdle();
         }
     }
 

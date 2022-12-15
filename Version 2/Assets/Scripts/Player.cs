@@ -1,3 +1,4 @@
+using DataBase;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -64,6 +65,7 @@ public class Player : MonoBehaviour
     private bool _attack;
     public float lastTimeTakingDamage;
     private SoundForPlayer _soundForPlayer;
+    private CollectionInfoInBd _collection;
 
     private void Update()
     {
@@ -106,6 +108,7 @@ public class Player : MonoBehaviour
         _wallsOnCheckRadius = wallsOnCheck.GetComponent<CircleCollider2D>().radius;
         _wallsDownCheckRadius = wallsDownCheck.GetComponent<CircleCollider2D>().radius;
         _soundForPlayer = GetComponent<SoundForPlayer>();
+        _collection = GetComponent<CollectionInfoInBd>();
     }
 
     
@@ -237,7 +240,7 @@ public class Player : MonoBehaviour
             _animator.SetTrigger("Attack" + _comboAttack);
 
             _sinceAttack = 0;
-
+            
         }
     }
 
@@ -254,15 +257,30 @@ public class Player : MonoBehaviour
         foreach (var enemyCollider in hitEnemies)
         {
             var enemyObject = enemyCollider.GetComponent<Enemy>();
-            enemyObject.TakingDamage(damage, transform.position, pushPower);
+            var dmg = enemyObject.TakingDamage(damage, transform.position, pushPower);
             if (enemyObject.canExpRageAfterDeath)
             {
-                if (enemyObject.death) {
-                    PlusRage(enemyObject.expRage);
+                if (enemyObject.death)
+                {
+                    var exp = enemyObject.expRage;
+                    PlusRage(exp);
+                    switch (exp)
+                    {
+                        case 4f:
+                            _collection.KillBlackBandit();
+                            break;
+                        case 8.5f:
+                            _collection.KillWhiteBandit();
+                            break;
+                    }
                     enemyObject.GiveCanExpRageAfterDeath();
                     _soundForPlayer.DeathEnemyReplica();
                 }
-                else PlusRage(0.1f);
+                else
+                {
+                    PlusRage(0.1f);
+                }
+                _collection.Attack(dmg);
                 count++;
             }
         }
@@ -276,7 +294,8 @@ public class Player : MonoBehaviour
         foreach (var bossCollider in hitBoss)
         {
             var bossObject = bossCollider.GetComponent<Boss>();
-            bossObject.TakingDamage(damage, transform.position, pushPower);
+            var dmg = bossObject.TakingDamage(damage, transform.position, pushPower);
+            _collection.Attack(dmg);
             PlusRage(0.1f);
         }
 
@@ -291,6 +310,7 @@ public class Player : MonoBehaviour
             var chestObject = chestCollider.GetComponent<Chest>();
             chestObject.OpenChest();
             _soundForPlayer.OpenChestReplica();
+            _collection.OpenChest();
         }
 
         _soundForPlayer.enemy = count > 0;
@@ -342,14 +362,23 @@ public class Player : MonoBehaviour
             if (_onBlock && enemyRight == _faceRight)
             {
                 MinusRage(0.8f);
-                if (rage == 0) health -= damageEnemy / 2;
+                if (rage == 0)
+                {
+                    if (health >= damageEnemy / 2) _collection.TakingDamage(damageEnemy / 2);
+                    else _collection.TakingDamage(health);
+                    health -= damageEnemy / 2;
+                    
+                }
                 
                 Death();
                 SmallBlockEvent();
             }
             else
             {
+                if (health >= damageEnemy) _collection.TakingDamage(damageEnemy);
+                else _collection.TakingDamage(health);
                 health -= damageEnemy;
+                
                 MinusRage(0.05f);
 
                 Death();
@@ -373,7 +402,7 @@ public class Player : MonoBehaviour
         _animator.SetInteger("AnimState", 0);
         _animator.SetInteger("AnimState2", 0);
         _animator.SetBool("noBlood", false);
-        
+        _collection.SetDeath();
         deathAnimation = true;
         _animator.SetTrigger("Death");
     }
@@ -519,5 +548,15 @@ public class Player : MonoBehaviour
 
     public void SetRecoveryAfterDeath(){
         recoveryAfterDeath = true;
+    }
+
+    public bool GetOnBlock()
+    {
+        return _onBlock;
+    }
+
+    public bool GetInvincibility()
+    {
+        return _invincibility;
     }
 }

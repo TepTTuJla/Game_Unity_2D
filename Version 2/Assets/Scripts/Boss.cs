@@ -37,14 +37,18 @@ public class Boss : MonoBehaviour
     private float _time;
     private bool _combo;
     private Transform _playerPosition;
+    private Player _player;
     public bool active;
     public float lastTimeTakingDamage;
+    private SoundForBoss _soundForBoss;
     private void Awake()
     {
         _rb = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
         _groundCheckRadius = groundCheckLeft.GetComponent<CircleCollider2D>().radius;
         _playerPosition = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        _player = GameObject.FindWithTag("Player").GetComponent<Player>();
+        _soundForBoss = GetComponent<SoundForBoss>();
     }
 
     private void Update()
@@ -63,7 +67,7 @@ public class Boss : MonoBehaviour
             if (Mathf.Abs(_playerPosition.position.x - transform.position.x) <= attackDistance &&
                    _sinceAttack >= kdAttack && _timeEndTakingDamage >= 0)
             {
-                if (Random.Range(1, 4) != 2 && !_combo)
+                if (Random.Range(1, 5) != 2 && !_combo)
                 {
                     Attack();
                 }
@@ -83,7 +87,13 @@ public class Boss : MonoBehaviour
             }
             lastTimeTakingDamage += Time.deltaTime;
         }
-        if (deathAnimation) lastTimeTakingDamage = 1f;
+
+        if (deathAnimation || death)
+        {
+            lastTimeTakingDamage = 1f;
+            _rb.velocity = new Vector2(0, _rb.velocity.y);
+            _animator.SetInteger("AnimState", 0);
+        }
     }
     
     private void Run()
@@ -106,6 +116,7 @@ public class Boss : MonoBehaviour
         _attack = true;
         var countHit = Random.Range(1, 4);
         _animator.SetTrigger("Attack" + countHit);
+        _soundForBoss.PlayAttackSound();
         RelaxationAfterAttack(countHit);
         _sinceAttack = 0;
         Debug.Log("Атака");
@@ -113,15 +124,22 @@ public class Boss : MonoBehaviour
 
     private void AttackCombo()
     {
+        if (_attack) return;
+        if (!_combo)
+        {
+            _comboAttack = 1;
+            _soundForBoss.PlayComboSound();
+        }
         _combo = true;
         _time += Time.deltaTime;
-        if (_time >= kdAttack)
+        if (_time >= kdAttackInCombo)
         {
             _attack = true;
             _animator.SetTrigger("Attack" + _comboAttack);
             Debug.Log("Комбо " + _comboAttack);
-            _comboAttack++;
+            Invoke(nameof(ComboAttackPlus), 0.5f);
             _time = 0;
+            _attack = true;
         }
 
         if (_comboAttack == 4)
@@ -131,21 +149,30 @@ public class Boss : MonoBehaviour
             _combo = false;
         }
     }
-    public void TakingDamage(float damageOnEnemy, Vector3 positionAttack, float pushPowerAttack)
+
+    private void ComboAttackPlus()
+    {
+        _comboAttack++;
+    }
+    
+    public float TakingDamage(float damageOnEnemy, Vector3 positionAttack, float pushPowerAttack)
     {
         if (death || _invincibility)
         {
-            return;
+            return 0;
         }
         
         //if (!death) _soundEnemy.PlayHurtSound();
-        if (_rb == null || pushPower == 0) return;
+        if (_rb == null || pushPower == 0) return 0;
 
         //if (_sinceAttack < 1f || _timeEndTakingDamage < 0)
         //{
+        float dmg;
+        if (health >= damageOnEnemy) dmg = damageOnEnemy;
+        else dmg = health;
         health -= damageOnEnemy;
         lastTimeTakingDamage = 0;
-        Death();
+        if (!death && !deathAnimation) Death();
         if (positionAttack.x >= transform.position.x)
         {
             _rb.AddForce(-transform.right * pushPowerAttack, ForceMode2D.Impulse);
@@ -154,7 +181,14 @@ public class Boss : MonoBehaviour
         {
             _rb.AddForce(transform.right * pushPowerAttack, ForceMode2D.Impulse);
         }
-        if (!_attack) _animator.SetTrigger("Hurt");
+
+        if (!_attack)
+        {
+            _animator.SetTrigger("Hurt");
+            _soundForBoss.PlayHurtSound();
+        }
+
+        return dmg;
         //}
     }
 
@@ -206,7 +240,7 @@ public class Boss : MonoBehaviour
 
     private void CheckGrounded()
     {
-        var change = _onGround;
+        //var change = _onGround;
         _onGround = Physics2D.OverlapCircle(groundCheckLeft.position, _groundCheckRadius, ground) || 
                     Physics2D.OverlapCircle(groundCheckRight.position, _groundCheckRadius, ground);
 
@@ -233,10 +267,17 @@ public class Boss : MonoBehaviour
             attackCheckLeftUp.position,
             attackCheckRightDown.position,
             player);
+        var i = 1;
         
         foreach (var playerHit in hitPlayers)
         {
             playerHit.GetComponent<Player>().TakingDamage(damage, transform.position, pushPower);
+            if (_player.GetOnBlock()) i = 3;
+            else
+            {
+                if (!_player.GetInvincibility()) i = 2;
+            }
         }
+        _soundForBoss.PlaySwordSound(i);
     }
 }

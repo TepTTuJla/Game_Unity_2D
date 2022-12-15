@@ -10,6 +10,7 @@ public class SoundForEnemy : MonoBehaviour
     public AudioClip landingSound;
     public AudioClip hurtSound;
     public AudioClip deathSound;
+    public AudioClip parrySound;
     private AudioSource _audioEnemy;
 
     private void Awake()
@@ -41,5 +42,10 @@ public class SoundForEnemy : MonoBehaviour
     {
         if (hit) _audioEnemy.PlayOneShot(attack1Sound);
         else _audioEnemy.PlayOneShot(attack2Sound);
+    }
+
+    public void PlayParryShield()
+    {
+        _audioEnemy.PlayOneShot(parrySound);
     }
 }

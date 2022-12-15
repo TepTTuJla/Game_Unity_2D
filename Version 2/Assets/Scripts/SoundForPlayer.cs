@@ -1,3 +1,4 @@
+using DataBase;
 using UnityEngine;
 
 public class SoundForPlayer : MonoBehaviour
@@ -35,6 +36,7 @@ public class SoundForPlayer : MonoBehaviour
     public AudioClip deathBossClip2;
 
     private Boss _boss;
+    private bool _deathBoss;
     private AudioSource _audioPlayer;
     public bool enemy;
     private float _timer;
@@ -43,13 +45,18 @@ public class SoundForPlayer : MonoBehaviour
     private void Update()
     {
         _timer += Time.deltaTime;
-        if (_boss.deathAnimation) DeathBossReplica();
+        if (_boss.deathAnimation && !_deathBoss)
+        {
+            DeathBossReplica();
+            _deathBoss = true;
+        }
     }
 
     private void Awake()
     {
         _boss = GameObject.FindGameObjectWithTag("Boss").GetComponent<Boss>();
         _audioPlayer = GameObject.FindGameObjectWithTag("Player").GetComponent<AudioSource>();
+        
     }
 
     public void PlayStep()

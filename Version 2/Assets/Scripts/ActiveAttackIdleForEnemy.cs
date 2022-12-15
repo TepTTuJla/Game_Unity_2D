@@ -5,7 +5,7 @@ public class ActiveAttackIdleForEnemy : MonoBehaviour
 {
     public List<GameObject> list;
     private Enemy _enemy;
-
+    
     private void Awake()
     {
         _enemy = GetComponent<Enemy>();
@@ -16,14 +16,14 @@ public class ActiveAttackIdleForEnemy : MonoBehaviour
         {
             foreach (var enemy in list)
             {
-                enemy.GetComponent<Enemy>().SetNoIdle();
+                if (enemy) enemy.GetComponent<Enemy>().SetNoIdle();
             }
         }
         else
         {
             foreach (var enemy in list)
             {
-                enemy.GetComponent<Enemy>().SetIdle();
+                if (enemy) enemy.GetComponent<Enemy>().SetIdle();
             }
         }
     }

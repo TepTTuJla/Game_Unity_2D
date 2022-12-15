@@ -252,20 +252,23 @@ public class Enemy: MonoBehaviour
     }
     
 
-    public void TakingDamage(float damageOnEnemy, Vector3 positionAttack, float pushPowerAttack)
+    public float TakingDamage(float damageOnEnemy, Vector3 positionAttack, float pushPowerAttack)
     {
         if (death || _invincibility)
         {
-            return;
+            return 0;
         }
         _time = 0;
+        float dmg;
+        if (health >= damageOnEnemy) dmg = damageOnEnemy;
+        else dmg = health;
         health -= damageOnEnemy;
         Death();
         
         if (!death) _soundEnemy.PlayHurtSound();
-        if (_rb == null || pushPower == 0) return;
+        if (_rb == null || pushPower == 0) return 0;
 
-        if (_attack) return;
+        if (_attack) return dmg;
         _animator.SetTrigger("Hurt");
         
 
@@ -274,6 +277,7 @@ public class Enemy: MonoBehaviour
         
         _rb.AddForce(transform.up * pushPowerAttack, ForceMode2D.Impulse);
         if (_idle) _idle = false;
+        return dmg;
     }
 
     private void GoWithPlayer()

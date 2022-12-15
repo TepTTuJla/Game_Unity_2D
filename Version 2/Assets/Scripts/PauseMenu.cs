@@ -25,11 +25,13 @@ public class PauseMenu : MonoBehaviour
     public float volumeSound = 0.5f;
     private bool _soundOff = true;
     private List<AudioSource> listAudioSource = new List<AudioSource>();
+    private AudioSource _bossAudio;
 
     public AudioMixerSnapshot pauseSnapshot;
     public AudioMixerSnapshot unpauseSnapshot;
     public AudioSource music;
 
+    //public bool mainMenu;
     private int _count;
     public Slider sliderVolumeMusic;
     public Slider sliderVolumeSound;
@@ -45,6 +47,7 @@ public class PauseMenu : MonoBehaviour
             listAudioSource.Add(enemy.GetComponent<AudioSource>());
         }
         listAudioSource.Add(GameObject.FindGameObjectWithTag("Player").GetComponent<AudioSource>());
+        _bossAudio = GameObject.FindWithTag("Boss").GetComponent<AudioSource>();
         
         music.Stop();
         LoadSettings();
@@ -55,6 +58,10 @@ public class PauseMenu : MonoBehaviour
     {
         sliderVolumeMusic.value = volumeMusic;
         sliderVolumeSound.value = volumeSound;
+        
+        SaveSettings();
+        //if (mainMenu) return;
+        
         if (Input.GetKeyDown(KeyCode.Escape) && !_deathMenu)
         {
             if (_pauseMenu)
@@ -77,14 +84,13 @@ public class PauseMenu : MonoBehaviour
         }
         LowPass();
         
-        SaveSettings();
     }
 
     public void Resume()
     {
         player.SetMenu();
         pauseGameMenu.SetActive(false);
-        VolumeOutMenu();
+        //if (!mainMenu) VolumeOutMenu();
         Time.timeScale = 1f;
         _pauseMenu = false;
         Cursor.visible = false;
@@ -94,7 +100,7 @@ public class PauseMenu : MonoBehaviour
     {
         player.SetMenu();
         pauseGameMenu.SetActive(true);
-        VolumeInMenu();
+        //if (!mainMenu) VolumeInMenu();
         Time.timeScale = 0;
         _pauseMenu = true;
         Cursor.visible = true;
@@ -138,6 +144,7 @@ public class PauseMenu : MonoBehaviour
         {
             soundInList.Stop();
         }
+        _bossAudio.Stop();
     }
 
     private void VolumeOutMenu()
@@ -148,6 +155,7 @@ public class PauseMenu : MonoBehaviour
         {
             soundInList.Play();
         }
+        _bossAudio.Play();
     }
 
     public void SetVolume(float volume)
@@ -171,6 +179,8 @@ public class PauseMenu : MonoBehaviour
             {
                 soundInList.mute = true;
             }
+
+            _bossAudio.mute = true;
         }
         else
         {
@@ -178,6 +188,8 @@ public class PauseMenu : MonoBehaviour
             {
                 soundInList.mute = false;
             }
+
+            _bossAudio.mute = false;
         }
         _soundOff = !_soundOff;
     }
