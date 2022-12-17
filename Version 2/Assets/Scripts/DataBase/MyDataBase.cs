@@ -2,6 +2,7 @@ using System;
 using System.Data;
 using System.IO;
 using Mono.Data.Sqlite;
+using UnityEngine;
 using static System.Int32;
 
 namespace DataBase
@@ -14,12 +15,12 @@ namespace DataBase
 
         static MyDataBase()
         {
-            var dir = @"C:\DataBase";
-            if (!Directory.Exists(dir))
-            {
-                Directory.CreateDirectory(dir);
-            }
-            _path = @"Data Source=C:\DataBase/data.db;Version=3";
+            // var dir = @"D:\DataBase";
+            // if (!Directory.Exists(dir))
+            // {
+            //     Directory.CreateDirectory(dir);
+            // }
+            _path = @"Data Source=" + Application.dataPath + "/StreamingAssets/data.db;Version=3";
         }
 
         private static void OpenConnection()

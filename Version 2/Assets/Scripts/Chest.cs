@@ -13,6 +13,7 @@ public class Chest : MonoBehaviour
 
     private Player _player;
     private Animator _animator;
+    public bool close;
 
     private void Awake() {
         _player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
@@ -22,6 +23,7 @@ public class Chest : MonoBehaviour
     public void OpenChest(){
         _animator.SetTrigger("Open");
         ApplicationBuff();
+        close = true;
     }
 
     private void ApplicationBuff()

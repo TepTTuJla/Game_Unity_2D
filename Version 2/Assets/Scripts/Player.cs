@@ -273,7 +273,7 @@ public class Player : MonoBehaviour
                         case 4f:
                             _collection.KillBlackBandit();
                             break;
-                        case 8.5f:
+                        default:
                             _collection.KillWhiteBandit();
                             break;
                     }
@@ -312,9 +312,12 @@ public class Player : MonoBehaviour
         foreach (var chestCollider in listChest)
         {
             var chestObject = chestCollider.GetComponent<Chest>();
-            chestObject.OpenChest();
-            _soundForPlayer.OpenChestReplica();
-            _collection.OpenChest();
+            if (!chestObject.close)
+            {
+                chestObject.OpenChest();
+                _soundForPlayer.OpenChestReplica();
+                _collection.OpenChest();
+            }
         }
 
         _soundForPlayer.enemy = count > 0;

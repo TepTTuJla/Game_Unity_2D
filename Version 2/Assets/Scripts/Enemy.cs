@@ -381,7 +381,6 @@ public class Enemy: MonoBehaviour
             health = maxHealth;
             _animator.SetTrigger("Recover");
             healthBar.gameObject.SetActive(true);
-            canExpRageAfterDeath = false;
         }
     }
 
