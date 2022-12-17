@@ -1,4 +1,3 @@
-using DataBase;
 using UnityEngine;
 
 public class SoundForPlayer : MonoBehaviour

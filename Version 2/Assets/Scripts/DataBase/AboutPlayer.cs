@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using DataBase;
 using TMPro;
 using UnityEngine;

@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 7dad76d0b9b42ee4d982fe3c981a948b
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - GroundCheck: {instanceID: 0}
+  - deathEffect: {fileID: 5423459590588681116, guid: e19c0b6049bfeac44b3038c23ceda00f, type: 3}
+  - takingDamageEffect: {fileID: 3381426469093464563, guid: 97bc136ca5bb7984482d2dffad3a023e, type: 3}
+  - pointRight: {instanceID: 0}
+  - pointLeft: {instanceID: 0}
+  - animator: {instanceID: 0}
+  - playerObject: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
