@@ -3,9 +3,9 @@ using UnityEngine;
 public class SoundForBoss : MonoBehaviour
 {
     public AudioClip stepSound;
-    public AudioClip sword1Sound;
-    public AudioClip sword2Sound;
-    public AudioClip sword3Sound;
+    public AudioClip swordMissSound;
+    public AudioClip swordInSound;
+    public AudioClip swordShieldSound;
     public AudioClip attack1Sound;
     public AudioClip attack2Sound;
     public AudioClip combo1Sound;
@@ -19,6 +19,7 @@ public class SoundForBoss : MonoBehaviour
     public AudioClip win3Sound;
 
     private AudioSource _audioBoss;
+    private AudioSource _endAudio;
     private float _timer;
     private Boss _boss;
     private Player _player;
@@ -29,6 +30,7 @@ public class SoundForBoss : MonoBehaviour
         _audioBoss = GetComponent<AudioSource>();
         _boss = GetComponent<Boss>();
         _player = GameObject.FindWithTag("Player").GetComponent<Player>();
+        _endAudio = GameObject.FindWithTag("Point").GetComponent<AudioSource>();
     }
 
     private void Update()
@@ -38,8 +40,9 @@ public class SoundForBoss : MonoBehaviour
 
         if (_player.deathAnimation && !_player.recoveryAfterDeath && !_count)
         {
+            _timer = -10f;
             _count = true;
-            PlayWinSound();
+            Invoke(nameof(PlayWinSound), 2f);
         }
     }
 
@@ -84,22 +87,21 @@ public class SoundForBoss : MonoBehaviour
 
     public void PlayWinSound()
     {
-        _audioBoss.bypassEffects = true;
+        if (!_boss.active) return;
         var i = RandomClip();
+        _audioBoss.Stop();
         switch (i)
         {
             case <= 30:
-                _audioBoss.clip = win1Sound;
-                _audioBoss.Play();
+                _endAudio.PlayOneShot(win1Sound);
                 break;
             case <= 60:
-                _audioBoss.clip = win3Sound;
+                _endAudio.PlayOneShot(win3Sound);
                 break;
             default:
-                _audioBoss.clip = win2Sound;
+                _endAudio.PlayOneShot(win2Sound);
                 break;
         }
-
         _timer -= 3f;
     }
     
@@ -125,8 +127,8 @@ public class SoundForBoss : MonoBehaviour
 
     public void PlayDeathSound()
     {
-        _audioBoss.clip = dieSound;
-        _audioBoss.Play();
+        _audioBoss.Stop();
+        _endAudio.PlayOneShot(dieSound);
         _boss.SetDeath();
     }
 
@@ -135,13 +137,13 @@ public class SoundForBoss : MonoBehaviour
         switch (i)
         {
             case 1:
-                _audioBoss.PlayOneShot(sword1Sound);
+                _audioBoss.PlayOneShot(swordMissSound);
                 break;
             case 2:
-                _audioBoss.PlayOneShot(sword2Sound);
+                _audioBoss.PlayOneShot(swordInSound);
                 break;
             case 3:
-                _audioBoss.PlayOneShot(sword3Sound);
+                _audioBoss.PlayOneShot(swordShieldSound);
                 break;
         }
     }

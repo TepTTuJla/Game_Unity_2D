@@ -66,6 +66,7 @@ public class Player : MonoBehaviour
     public float lastTimeTakingDamage;
     private SoundForPlayer _soundForPlayer;
     private CollectionInfoInBd _collection;
+    public int i = 1;
 
     private void Update()
     {
@@ -73,6 +74,9 @@ public class Player : MonoBehaviour
         {
             _animator.SetFloat("AirSpeedY", _rb.velocity.y);
 
+            if (_onBlock) i = 3;
+            else i = 2;
+            
             FlipX();
 
             Run();
@@ -356,7 +360,11 @@ public class Player : MonoBehaviour
         if (_invincibility) return;
         lastTimeTakingDamage = 0;
         var enemyRight = positionAttack.x > transform.position.x;
-        if (_onBlock && _blockTime <= blockParryTime && enemyRight == _faceRight) ParryBlock();
+        if (_onBlock && _blockTime <= blockParryTime && enemyRight == _faceRight)
+        {
+            ParryBlock();
+            i = 3;
+        }
         else
         {
             if (_onBlock && enemyRight == _faceRight)
@@ -367,7 +375,7 @@ public class Player : MonoBehaviour
                     if (health >= damageEnemy / 2) _collection.TakingDamage(damageEnemy / 2);
                     else _collection.TakingDamage(health);
                     health -= damageEnemy / 2;
-                    
+                    i = 3;
                 }
                 
                 Death();
@@ -378,7 +386,7 @@ public class Player : MonoBehaviour
                 if (health >= damageEnemy) _collection.TakingDamage(damageEnemy);
                 else _collection.TakingDamage(health);
                 health -= damageEnemy;
-                
+                i = 2;
                 MinusRage(0.05f);
 
                 Death();
@@ -441,7 +449,7 @@ public class Player : MonoBehaviour
 
     public void SetDeath()
     {
-        Invoke(nameof(SetDeathInvoke), 1f);
+        Invoke(nameof(SetDeathInvoke), 5f);
     }
 
     private void SetDeathInvoke(){
@@ -550,13 +558,8 @@ public class Player : MonoBehaviour
         recoveryAfterDeath = true;
     }
 
-    public bool GetOnBlock()
+    public int GetStatus()
     {
-        return _onBlock;
-    }
-
-    public bool GetInvincibility()
-    {
-        return _invincibility;
+        return i; // 1 - мимо, 2 - нанёс урон, 3 - щит
     }
 }

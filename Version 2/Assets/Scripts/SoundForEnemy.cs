@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class SoundForEnemy : MonoBehaviour
 {
-    public AudioClip attack1Sound;
-    public AudioClip attack2Sound;
+    public AudioClip axeMissSound;
+    public AudioClip axeInSound;
+    public AudioClip axeShieldSound;
     public AudioClip stepSound;
     public AudioClip landingSound;
     public AudioClip hurtSound;
@@ -38,10 +39,20 @@ public class SoundForEnemy : MonoBehaviour
         if (deathSound) _audioEnemy.PlayOneShot(deathSound);
     }
 
-    public void PlayAttackSound(bool hit)
+    public void PlayAttackSound(int i)
     {
-        if (hit) _audioEnemy.PlayOneShot(attack1Sound);
-        else _audioEnemy.PlayOneShot(attack2Sound);
+        switch (i)
+        {
+            case 1:
+                _audioEnemy.PlayOneShot(axeMissSound);
+                break;
+            case 2:
+                _audioEnemy.PlayOneShot(axeInSound);
+                break;
+            case 3:
+                _audioEnemy.PlayOneShot(axeShieldSound);
+                break;
+        }
     }
 
     public void PlayParryShield()

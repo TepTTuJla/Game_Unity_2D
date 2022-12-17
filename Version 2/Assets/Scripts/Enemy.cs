@@ -47,7 +47,7 @@ public class Enemy: MonoBehaviour
     private bool _attack;
     private float _stopTime;
     public LayerMask player;
-    public LayerMask enemy;
+    private Player _player;
     public Transform attackCheckLeftUp;
     public Transform attackCheckRightDown;
     private int _layerMaskForEnemy;
@@ -72,6 +72,7 @@ public class Enemy: MonoBehaviour
         _groundCheckRadius = groundCheckRight.GetComponent<CircleCollider2D>().radius;
         _wallsCheckRadius = wallsCheckUp.GetComponent<CircleCollider2D>().radius;
         _playerObject = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        _player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
         warningAttack.SetActive(false);
         _isDeadClass = GetComponent<SetDeathEnemyFromStart>();
         _soundEnemy = GetComponent<SoundForEnemy>();
@@ -89,7 +90,7 @@ public class Enemy: MonoBehaviour
         if (_isDeadClass) _isDead = _isDeadClass.isDead;
         if (death)
         {
-            canExpRageAfterDeath = !_invincibility;
+            //canExpRageAfterDeath = !_invincibility;
             
             warningAttack.SetActive(false);
             _rb.velocity = new Vector2(0, _rb.velocity.y);
@@ -136,6 +137,7 @@ public class Enemy: MonoBehaviour
         _soundEnemy.PlayDeathSound();
         _animator.SetTrigger("Death");
         death = true;
+        //canExpRageAfterDeath = false;
         healthBar.gameObject.SetActive(false);
         death = true;
         _time = 0;
@@ -234,8 +236,8 @@ public class Enemy: MonoBehaviour
                 _attackTime = 0;
                 var timer = 0f;
                 while (timer <= 1f) timer += Time.deltaTime;
-                _animator.SetTrigger("Attack");
                 _attack = true;
+                _animator.SetTrigger("Attack");
                 _kdAttack = Random.Range(kdAttackConst - 0.5f, kdAttackConst + 0.5f);
             }
         }
@@ -325,11 +327,14 @@ public class Enemy: MonoBehaviour
                 enemyHit.GetComponent<Enemy>().TakingDamage(damage, transform.position, pushPower);
             }
         }*/
-        _soundEnemy.PlayAttackSound(hitPlayers.Length == 0);
+        
+        var i = 1;
         foreach (var playerHit in hitPlayers)
         {
             playerHit.GetComponent<Player>().TakingDamage(damage, transform.position, pushPower);
+            i = _player.GetStatus();
         }
+        _soundEnemy.PlayAttackSound(i);
     }
 
 
@@ -376,7 +381,7 @@ public class Enemy: MonoBehaviour
             health = maxHealth;
             _animator.SetTrigger("Recover");
             healthBar.gameObject.SetActive(true);
-            canExpRageAfterDeath = true;
+            canExpRageAfterDeath = false;
         }
     }
 
@@ -419,14 +424,14 @@ public class Enemy: MonoBehaviour
         return _idle;
     }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(observationCheck.position, radiusObservation);
-        Physics2D.Raycast(
-            observationCheck.position,
-            Vector2.right,
-            findDistanceFace
-            );
-    }
+    // private void OnDrawGizmos()
+    // {
+    //     Gizmos.color = Color.red;
+    //     Gizmos.DrawWireSphere(observationCheck.position, radiusObservation);
+    //     Physics2D.Raycast(
+    //         observationCheck.position,
+    //         Vector2.right,
+    //         findDistanceFace
+    //         );
+    // }
 }

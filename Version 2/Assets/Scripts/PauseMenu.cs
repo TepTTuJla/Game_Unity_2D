@@ -26,6 +26,7 @@ public class PauseMenu : MonoBehaviour
     private bool _soundOff = true;
     private List<AudioSource> listAudioSource = new List<AudioSource>();
     private AudioSource _bossAudio;
+    private AudioSource _endAudio;
 
     public AudioMixerSnapshot pauseSnapshot;
     public AudioMixerSnapshot unpauseSnapshot;
@@ -48,7 +49,7 @@ public class PauseMenu : MonoBehaviour
         }
         listAudioSource.Add(GameObject.FindGameObjectWithTag("Player").GetComponent<AudioSource>());
         _bossAudio = GameObject.FindWithTag("Boss").GetComponent<AudioSource>();
-        
+        _endAudio = GameObject.FindWithTag("Point").GetComponent<AudioSource>();
         music.Stop();
         LoadSettings();
         AcceptSettings();
@@ -121,6 +122,11 @@ public class PauseMenu : MonoBehaviour
             _settingsMenu = false;
         }
     }
+    
+    public void InMenu()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+    }
 
     public void RestartLevel()
     {
@@ -145,6 +151,7 @@ public class PauseMenu : MonoBehaviour
             soundInList.Stop();
         }
         _bossAudio.Stop();
+        _endAudio.Stop();
     }
 
     private void VolumeOutMenu()
@@ -156,6 +163,7 @@ public class PauseMenu : MonoBehaviour
             soundInList.Play();
         }
         _bossAudio.Play();
+        _endAudio.Play();
     }
 
     public void SetVolume(float volume)
@@ -181,6 +189,7 @@ public class PauseMenu : MonoBehaviour
             }
 
             _bossAudio.mute = true;
+            _endAudio.mute = true;
         }
         else
         {
@@ -190,6 +199,7 @@ public class PauseMenu : MonoBehaviour
             }
 
             _bossAudio.mute = false;
+            _endAudio.mute = false;
         }
         _soundOff = !_soundOff;
     }

@@ -21,7 +21,7 @@ public class Element
         this.countCompletions = countCompletions;
         this.idPlayer = idPlayer;
         this.incomingDamage = incomingDamage;
-        //this.killEnemy = killEnemy;
+        //this.killEnemy = countBlackBanditKill + countWhiteBanditKill + countBossKill;
         this.maxRating = maxRating;
         this.outcomingDamage = outcomingDamage;
         this.countBossKill = countBossKill;

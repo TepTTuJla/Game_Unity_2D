@@ -54,7 +54,7 @@ public class Boss : MonoBehaviour
     private void Update()
     {
         if (!active) return;
-        if (!death && !deathAnimation)
+        if (!death && !deathAnimation && !_player.deathAnimation)
         {
             FlipX();
             CheckGrounded();
@@ -92,7 +92,7 @@ public class Boss : MonoBehaviour
         {
             lastTimeTakingDamage = 1f;
             _rb.velocity = new Vector2(0, _rb.velocity.y);
-            _animator.SetInteger("AnimState", 0);
+            //_animator.SetInteger("AnimState", 0);
         }
     }
     
@@ -157,7 +157,7 @@ public class Boss : MonoBehaviour
     
     public float TakingDamage(float damageOnEnemy, Vector3 positionAttack, float pushPowerAttack)
     {
-        if (death || _invincibility)
+        if (death || _invincibility || deathAnimation)
         {
             return 0;
         }
@@ -172,7 +172,7 @@ public class Boss : MonoBehaviour
         else dmg = health;
         health -= damageOnEnemy;
         lastTimeTakingDamage = 0;
-        if (!death && !deathAnimation) Death();
+        Death();
         if (positionAttack.x >= transform.position.x)
         {
             _rb.AddForce(-transform.right * pushPowerAttack, ForceMode2D.Impulse);
@@ -194,10 +194,10 @@ public class Boss : MonoBehaviour
 
     private void Death()
     {
-        if (health > 0) return;
-        //_soundEnemy.PlayDeathSound();
-        _animator.SetTrigger("Death");
+        if (health > 0 || death || deathAnimation) return;
+        _soundForBoss.PlayDeathSound();
         deathAnimation = true;
+        _animator.SetTrigger("Death");
         //healthBar.gameObject.SetActive(false);
     }
 
@@ -255,6 +255,7 @@ public class Boss : MonoBehaviour
     public void SetDeath()
     {
         Invoke(nameof(SetDeathInvoke), 1f);
+        //_animator.enabled = false;
     }
 
     private void SetDeathInvoke(){
@@ -272,11 +273,7 @@ public class Boss : MonoBehaviour
         foreach (var playerHit in hitPlayers)
         {
             playerHit.GetComponent<Player>().TakingDamage(damage, transform.position, pushPower);
-            if (_player.GetOnBlock()) i = 3;
-            else
-            {
-                if (!_player.GetInvincibility()) i = 2;
-            }
+            i = _player.GetStatus();
         }
         _soundForBoss.PlaySwordSound(i);
     }

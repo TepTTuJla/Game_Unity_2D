@@ -87,6 +87,7 @@ namespace DataBase
 
         public void SetInBd()
         {
+            CountRating();
             var incDamage = Convert.ToInt32(incomingDamage);
             var outDamage = Convert.ToInt32(outcomingDamage);
             MyDataBase.AddCompletionInBd(SetCompletionInTable.id, incDamage, outDamage,

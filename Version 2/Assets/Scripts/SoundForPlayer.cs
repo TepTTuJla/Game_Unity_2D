@@ -38,6 +38,7 @@ public class SoundForPlayer : MonoBehaviour
     private Boss _boss;
     private bool _deathBoss;
     private AudioSource _audioPlayer;
+    private AudioSource _endAudio;
     public bool enemy;
     private float _timer;
     public float changeReplica = 2.5f;
@@ -47,8 +48,8 @@ public class SoundForPlayer : MonoBehaviour
         _timer += Time.deltaTime;
         if (_boss.deathAnimation && !_deathBoss)
         {
-            DeathBossReplica();
             _deathBoss = true;
+            Invoke(nameof(DeathBossReplica), 2f);
         }
     }
 
@@ -56,7 +57,7 @@ public class SoundForPlayer : MonoBehaviour
     {
         _boss = GameObject.FindGameObjectWithTag("Boss").GetComponent<Boss>();
         _audioPlayer = GameObject.FindGameObjectWithTag("Player").GetComponent<AudioSource>();
-        
+        _endAudio = GameObject.FindWithTag("Point").GetComponent<AudioSource>();
     }
 
     public void PlayStep()
@@ -182,15 +183,15 @@ public class SoundForPlayer : MonoBehaviour
 
     public void DeathEnemyReplica(){
         var i = RandomClip();
-        if (_timer < changeReplica) return;
+        _audioPlayer.Stop();
         switch (i)
         {
             case <= 30:
-                _audioPlayer.PlayOneShot(deathEnemyClip1);
+                _endAudio.PlayOneShot(deathEnemyClip1);
                 _timer = 0;
                 break;
             case <= 60:
-                _audioPlayer.PlayOneShot(deathEnemyClip1);
+                _endAudio.PlayOneShot(deathEnemyClip1);
                 _timer = 0;
                 break;
         }

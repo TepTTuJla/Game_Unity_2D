@@ -7,7 +7,7 @@ using UnityEngine;
 public class AboutPlayer : MonoBehaviour
 {
     public TextMeshProUGUI nickname;
-    public TextMeshProUGUI countEnemies;
+    //public TextMeshProUGUI countEnemies;
     public TextMeshProUGUI countWhite;
     public TextMeshProUGUI countBlack;
     public TextMeshProUGUI countBoss;

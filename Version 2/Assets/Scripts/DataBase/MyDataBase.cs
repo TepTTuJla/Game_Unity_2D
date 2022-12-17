@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using System.Data;
+using System.IO;
 using Mono.Data.Sqlite;
 using static System.Int32;
 
@@ -8,13 +9,18 @@ namespace DataBase
 {
     public class MyDataBase
     {
-        public static SqliteConnection _dbConnection;
+        private static SqliteConnection _dbConnection;
         private static string _path;
         private static SqliteCommand _command;
 
         static MyDataBase()
         {
-            _path = @"Data Source=D:\DataBase/data.db;Version=3";
+            var dir = @"C:\DataBase";
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            _path = @"Data Source=C:\DataBase/data.db;Version=3";
         }
 
         private static void OpenConnection()
@@ -59,31 +65,12 @@ namespace DataBase
             }
         }
 
-        //Возвращает таблицу - ответ на запрос
-        public static DataTable GetTable(string query)
-        {
-            OpenConnection();
-            try
-            {
-                SqliteDataAdapter adapter = new SqliteDataAdapter(query, _dbConnection);
-                DataSet ds = new DataSet();
-                adapter.Fill(ds);
-                return ds.Tables[0];
-            }
-            catch (SqliteException)
-            {
-                CloseConnection();
-                return null;
-            }
-        }
-
         //Создание таблиц
         public static void CreateTables()
         {
             ExecuteQueryWithoutAnswer("CREATE TABLE IF NOT EXISTS players (" +
                                       "id_player INTEGER PRIMARY KEY AUTOINCREMENT," +
-                                      "nickname TEXT NOT NULL," +
-                                      "password TEXT NOT NULL" +
+                                      "nickname TEXT NOT NULL" +
                                       ");");
 
             ExecuteQueryWithoutAnswer("CREATE TABLE IF NOT EXISTS completions (" +
@@ -176,34 +163,6 @@ namespace DataBase
             return check;
         }
 
-        //Проверка на правильность ввода пароля
-        public static bool CheckPasswordPlayer(string nickname, string password)
-        {
-            var passwordInBd = "";
-            using (var connection = new SqliteConnection(_path))
-            {
-                connection.Open();
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandText = "SELECT password FROM players WHERE nickname = '" + nickname + "';";
-                    using (IDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            passwordInBd = reader.GetString(reader.GetOrdinal("password"));
-                        }
-
-                        reader.Close();
-                    }
-                }
-
-                connection.Close();
-            }
-
-            Debug.Log(passwordInBd + " = " + password);
-            return passwordInBd == password;
-        }
-
         //Вовзвращает id игрока
         public static int GetIdPlayer(string nickname)
         {
@@ -232,10 +191,11 @@ namespace DataBase
         }
 
         //Регистрация игроков
-        public static void RegisterPlayer(string nickname, string password)
+        public static void RegisterPlayer(string nickname)
         {
-            ExecuteQueryWithoutAnswer("INSERT INTO players (nickname, password) " +
-                                      "VALUES ('" + nickname + "', '" + password + "');");
+            ExecuteQueryWithoutAnswer("INSERT INTO players (nickname) " +
+                                      "VALUES ('" + nickname + "');");
+            
             var id = GetIdPlayer(nickname);
             
             ExecuteQueryWithoutAnswer("INSERT INTO killer_list (id_player, white_bandit_count, black_bandit_count, boss_count) " +
@@ -264,20 +224,18 @@ namespace DataBase
                                       "black_bandit_count = black_bandit_count + " + killBlackBandit + ", " +
                                       "boss_count = boss_count + " + killBoss + " " +
                                       "WHERE id_player = " + idPlayer + "; ");
-            Debug.Log("1");
-            
+
             ExecuteQueryWithoutAnswer("UPDATE player_info " +
                                       "SET count_completions = count_completions + 1, " +
                                       "incoming_damage = incoming_damage + " + incomingDamage + ", " +
                                       "outcoming_damage = outcoming_damage + " + outcomingDamage + " " +
                                       "WHERE id_player = " + idPlayer + "; ");
-            Debug.Log("2");
 
             var bestCompetition = ExecuteQueryWithAnswer("SELECT id_completion FROM completions " +
-                                                          "WHERE id_player = " + idPlayer + " " +
-                                                          "ORDER BY rating DESC " +
-                                                          "LIMIT 1;");
-            Debug.Log("3");
+                                                         "WHERE id_player = " + idPlayer + " " +
+                                                         "ORDER BY rating DESC " +
+                                                         "LIMIT 1;");
+            
             var best = Parse(bestCompetition);
             ExecuteQueryWithoutAnswer("UPDATE best_completion " +
                                       "SET id_completion = " + best + " " +
@@ -324,7 +282,11 @@ namespace DataBase
         //Получение информации об игроке
         public static Element GetInfoPlayer(int idPlayers)
         {
-            var maxRating = Parse(ExecuteQueryWithAnswer(
+            var countCompletion = Parse(ExecuteQueryWithAnswer(
+                "SELECT count_completions FROM player_info " +
+                "WHERE id_player = " + idPlayers + " ;"));
+            var maxRating = 0;
+            if (countCompletion != 0) maxRating = Parse(ExecuteQueryWithAnswer(
                 "SELECT rating FROM completions " +
                 "WHERE id_player = " + idPlayers + " " +
                 "ORDER BY rating DESC " +
@@ -334,7 +296,7 @@ namespace DataBase
             var nickname = "";
             var outcomingDamage = 0;
             var countWhiteBanditKill = 0;
-            var killEnemy = 0;
+            //var killEnemy = 0;
             var countBlackBanditKill = 0;
             var countBossKill = 0;
             var countCompletions = 0;
