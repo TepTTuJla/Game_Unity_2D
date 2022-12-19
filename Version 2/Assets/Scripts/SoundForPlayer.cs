@@ -1,3 +1,4 @@
+using DataBase;
 using UnityEngine;
 
 public class SoundForPlayer : MonoBehaviour
@@ -41,6 +42,7 @@ public class SoundForPlayer : MonoBehaviour
     public bool enemy;
     private float _timer;
     public float changeReplica = 2.5f;
+    private CollectionInfoInBd _collection;
 
     private void Update()
     {
@@ -57,6 +59,7 @@ public class SoundForPlayer : MonoBehaviour
         _boss = GameObject.FindGameObjectWithTag("Boss").GetComponent<Boss>();
         _audioPlayer = GameObject.FindGameObjectWithTag("Player").GetComponent<AudioSource>();
         _endAudio = GameObject.FindWithTag("Point").GetComponent<AudioSource>();
+        _collection = GetComponent<CollectionInfoInBd>();
     }
 
     public void PlayStep()
@@ -205,6 +208,7 @@ public class SoundForPlayer : MonoBehaviour
             return;
         }
         _audioPlayer.PlayOneShot(deathBossClip2);
+        _collection.KillBoss();
         _timer = 0;
     }
 

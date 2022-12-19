@@ -13,14 +13,11 @@ namespace DataBase
         public int rating;
         public float time;
         public int death;
-        private bool _bossIdDead;
-        private Boss _boss;
 
         //Вызывается во время 1 кадра
         private void Start()
         {
             time = 0;
-            _boss = GameObject.FindWithTag("Boss").GetComponent<Boss>();
         }
         
         //Вызывается постоянно во время каждого кадра
@@ -57,11 +54,7 @@ namespace DataBase
 
         public void KillBoss()
         {
-            if (_boss.death && !_bossIdDead)
-            {
-                countKillBoss++;
-                _bossIdDead = true;
-            }
+            countKillBoss++;
         }
 
         public void SetDeath()
@@ -105,7 +98,6 @@ namespace DataBase
             rating = 0;
             time = 0;
             death = 0;
-            _bossIdDead = false;
         }
     }
 }

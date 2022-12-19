@@ -92,6 +92,21 @@ namespace DataBase
                 return null;
             }
         }
+        
+        public static DataTable GetTable(string query)
+        {
+            OpenConnection();
+
+            SqliteDataAdapter adapter = new SqliteDataAdapter(query, _dbConnection);
+
+            DataSet DS = new DataSet();
+            adapter.Fill(DS);
+            adapter.Dispose();
+
+            CloseConnection();
+
+            return DS.Tables[0];
+        }
 
         //Создание таблиц
         public static void CreateTables()
@@ -246,6 +261,14 @@ namespace DataBase
             int killBoss, int rating, int countChest, float time)
         {
             var killEnemy = killBlackBandit + killWhiteBandit + killBoss;
+            if (incomingDamage < 0) incomingDamage = 0;
+            if (outcomingDamage < 0) outcomingDamage = 0;
+            if (killBlackBandit < 0) killBlackBandit = 0;
+            if (killWhiteBandit < 0) killWhiteBandit = 0;
+            if (killBoss < 0) killBoss = 0;
+            if (time < 0) time = 0;
+            if (rating < 0) rating = 0;
+            if (countChest < 0) countChest = 0;
             var seconds = time % 60;
             var minutes = (time - seconds) / 60;
             var timeStr = String.Format(Math.Round(minutes, 0) + " Minute " + Math.Round(seconds, 0) + " Seconds");
@@ -295,7 +318,6 @@ namespace DataBase
             var nickname = "";
             var outcomingDamage = 0;
             var countWhiteBanditKill = 0;
-            //var killEnemy = 0;
             var countBlackBanditKill = 0;
             var countBossKill = 0;
             var countCompletions = 0;
@@ -315,7 +337,6 @@ namespace DataBase
                     nickname = reader["nickname"].ToString();
                     outcomingDamage = Parse(reader["outcoming_damage"].ToString());
                     countWhiteBanditKill = Parse(reader["white_bandit_count"].ToString());
-                    //killEnemy = Parse(reader["kill_enemy"].ToString());
                     countBlackBanditKill = Parse(reader["black_bandit_count"].ToString());
                     countBossKill = Parse(reader["boss_count"].ToString());
                     countCompletions = Parse(reader["count_completions"].ToString());

@@ -18,7 +18,7 @@ public class ActiveRecovery : MonoBehaviour
     {
         foreach (var enemy in listGameObjects)
         {
-            _listEnemy.Add(enemy.GameObject().GetComponent<Enemy>());
+            _listEnemy.Add(enemy.GetComponent<Enemy>());
         }
     }
 

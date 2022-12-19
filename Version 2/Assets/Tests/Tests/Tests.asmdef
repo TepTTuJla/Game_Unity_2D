@@ -2,9 +2,10 @@
     "name": "Tests",
     "rootNamespace": "",
     "references": [
-        "NewAssembly",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "DataBase",
+        ""
     ],
     "includePlatforms": [
         "Editor"
