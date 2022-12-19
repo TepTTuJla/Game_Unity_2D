@@ -20,6 +20,7 @@ namespace DataBase
             _nickname = textAuthNickname.GetComponent<TMP_InputField>();
             MyDataBase.CreateTables();
             MyDataBase.CreateTheFirstCompletion();
+            textNickname.text = MyDataBase.check;
         }
 
         public void Authentication()

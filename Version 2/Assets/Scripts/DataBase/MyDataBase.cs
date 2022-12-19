@@ -10,17 +10,46 @@ namespace DataBase
     public class MyDataBase
     {
         private static SqliteConnection _dbConnection;
+        private const string _fileName = "data.bytes";
+        private static string _DBPath;
         private static string _path;
+        public static string check;
         private static SqliteCommand _command;
 
         static MyDataBase()
         {
-            // var dir = @"D:\DataBase";
-            // if (!Directory.Exists(dir))
-            // {
-            //     Directory.CreateDirectory(dir);
-            // }
-            _path = @"Data Source=" + Application.dataPath + "/StreamingAssets/data.db;Version=3";
+            _DBPath = GetDatabasePath();
+            _path = "Data Source=" + _DBPath;
+        }
+
+        private static string GetDatabasePath()
+        {
+            string str = "";
+            #if UNITY_EDITOR
+                check = "Unity_Editor";
+            str = Path.Combine(Application.streamingAssetsPath, _fileName);
+            #endif
+            if (str != "") return str;
+            
+            #if UNITY_STANDALONE_WIN
+            check = "Windows";
+            string filePath = Path.Combine(Application.dataPath, _fileName);
+            if (!File.Exists(filePath)) UnpackDatabase(filePath);
+            str = filePath;
+            #endif
+            return str;
+        }
+
+        private static void UnpackDatabase(string toPath)
+        {
+            string fromPath = Path.Combine(Application.streamingAssetsPath, _fileName);
+
+            WWW reader = new WWW(fromPath);
+            while (!reader.isDone)
+            {
+            }
+
+            File.WriteAllBytes(toPath, reader.bytes);
         }
 
         private static void OpenConnection()
@@ -35,7 +64,7 @@ namespace DataBase
         {
             _dbConnection.Close();
         }
-        
+
         //Выполняет запрос
         public static void ExecuteQueryWithoutAnswer(string query)
         {
@@ -115,7 +144,7 @@ namespace DataBase
             OpenConnection();
 
             var sqlCommand = "SELECT rating FROM completions WHERE id_completion = 1;";
-            
+
             _command.CommandText = sqlCommand;
             using (var reader = _command.ExecuteReader())
             {
@@ -135,10 +164,11 @@ namespace DataBase
         public static void CreateTheFirstCompletion()
         {
             if (GetTheFirstCompletion()) return;
-            ExecuteQueryWithoutAnswer("INSERT INTO completions (incoming_damage, outcoming_damage, kill_enemy, count_chest, rating, time) " +
-                                      "VALUES (0, 0, 0, 0, 0, '0');");
+            ExecuteQueryWithoutAnswer(
+                "INSERT INTO completions (incoming_damage, outcoming_damage, kill_enemy, count_chest, rating, time) " +
+                "VALUES (0, 0, 0, 0, 0, '0');");
         }
-        
+
         //Проверка, что игрок есть в таблице
         public static bool CheckPlayerInBd(string nickname)
         {
@@ -146,7 +176,7 @@ namespace DataBase
             OpenConnection();
 
             var sqlCommand = "SELECT id_player FROM players WHERE nickname = '" + nickname + "';";
-            
+
             _command.CommandText = sqlCommand;
             using (var reader = _command.ExecuteReader())
             {
@@ -195,29 +225,34 @@ namespace DataBase
         {
             ExecuteQueryWithoutAnswer("INSERT INTO players (nickname) " +
                                       "VALUES ('" + nickname + "');");
-            
+
             var id = GetIdPlayer(nickname);
-            
-            ExecuteQueryWithoutAnswer("INSERT INTO killer_list (id_player, white_bandit_count, black_bandit_count, boss_count) " +
-                                      "VALUES (" + id + ", 0, 0, 0);");
-            
-            ExecuteQueryWithoutAnswer("INSERT INTO player_info (id_player, count_completions, incoming_damage, outcoming_damage) " +
-                                      "VALUES (" + id + ", 0, 0, 0);");
-            
+
+            ExecuteQueryWithoutAnswer(
+                "INSERT INTO killer_list (id_player, white_bandit_count, black_bandit_count, boss_count) " +
+                "VALUES (" + id + ", 0, 0, 0);");
+
+            ExecuteQueryWithoutAnswer(
+                "INSERT INTO player_info (id_player, count_completions, incoming_damage, outcoming_damage) " +
+                "VALUES (" + id + ", 0, 0, 0);");
+
             ExecuteQueryWithoutAnswer("INSERT INTO best_completion (id_player, id_completion) " +
                                       "VALUES (" + id + ", 1);");
         }
-        
+
         //Добавление информации о прохождении в таблицу
-        public static void AddCompletionInBd(int idPlayer, int incomingDamage, int outcomingDamage, int killWhiteBandit, int killBlackBandit,
+        public static void AddCompletionInBd(int idPlayer, int incomingDamage, int outcomingDamage, int killWhiteBandit,
+            int killBlackBandit,
             int killBoss, int rating, int countChest, float time)
         {
             var killEnemy = killBlackBandit + killWhiteBandit + killBoss;
             var seconds = time % 60;
             var minutes = (time - seconds) / 60;
             var timeStr = String.Format(Math.Round(minutes, 0) + " Minute " + Math.Round(seconds, 0) + " Seconds");
-            ExecuteQueryWithoutAnswer("INSERT INTO completions (id_player, incoming_damage, outcoming_damage, kill_enemy, count_chest, rating, time) " +
-                                      "VALUES ( " + idPlayer + ", " + incomingDamage +", " + outcomingDamage + ", " + killEnemy + ", " + countChest + ", " + rating + ", '" + timeStr + "');");
+            ExecuteQueryWithoutAnswer(
+                "INSERT INTO completions (id_player, incoming_damage, outcoming_damage, kill_enemy, count_chest, rating, time) " +
+                "VALUES ( " + idPlayer + ", " + incomingDamage + ", " + outcomingDamage + ", " + killEnemy + ", " +
+                countChest + ", " + rating + ", '" + timeStr + "');");
 
             ExecuteQueryWithoutAnswer("UPDATE killer_list " +
                                       "SET white_bandit_count = white_bandit_count + " + killWhiteBandit + ", " +
@@ -235,13 +270,13 @@ namespace DataBase
                                                          "WHERE id_player = " + idPlayer + " " +
                                                          "ORDER BY rating DESC " +
                                                          "LIMIT 1;");
-            
+
             var best = Parse(bestCompetition);
             ExecuteQueryWithoutAnswer("UPDATE best_completion " +
                                       "SET id_completion = " + best + " " +
                                       "WHERE id_player = " + idPlayer + ";");
         }
-        
+
         //Получение списка топ 7 игроков и данного
         // public static List<Element> GetList(int idPlayer)
         // {
@@ -286,12 +321,13 @@ namespace DataBase
                 "SELECT count_completions FROM player_info " +
                 "WHERE id_player = " + idPlayers + " ;"));
             var maxRating = 0;
-            if (countCompletion != 0) maxRating = Parse(ExecuteQueryWithAnswer(
-                "SELECT rating FROM completions " +
-                "WHERE id_player = " + idPlayers + " " +
-                "ORDER BY rating DESC " +
-                "LIMIT 1;"
-            ));
+            if (countCompletion != 0)
+                maxRating = Parse(ExecuteQueryWithAnswer(
+                    "SELECT rating FROM completions " +
+                    "WHERE id_player = " + idPlayers + " " +
+                    "ORDER BY rating DESC " +
+                    "LIMIT 1;"
+                ));
             var incomingDamage = 0;
             var nickname = "";
             var outcomingDamage = 0;
@@ -300,7 +336,7 @@ namespace DataBase
             var countBlackBanditKill = 0;
             var countBossKill = 0;
             var countCompletions = 0;
-            
+
             OpenConnection();
 
             var sqlCommand =
@@ -321,8 +357,10 @@ namespace DataBase
                     countBossKill = Parse(reader["boss_count"].ToString());
                     countCompletions = Parse(reader["count_completions"].ToString());
                 }
+
                 reader.Close();
             }
+
             CloseConnection();
             var el = new Element(idPlayers, nickname, incomingDamage, outcomingDamage,
                 countCompletions, countWhiteBanditKill, countBlackBanditKill, countBossKill, maxRating);
