@@ -20,23 +20,22 @@ namespace DataBase
         {
             _DBPath = GetDatabasePath();
             _path = "Data Source=" + _DBPath;
+            Debug.Log(Application.streamingAssetsPath);
         }
 
         private static string GetDatabasePath()
         {
-            string str = "";
-            #if UNITY_EDITOR
-                check = "Unity_Editor";
+            var str = "";
+#if (UNITY_EDITOR)
+            check = "Unity_Editor";
             str = Path.Combine(Application.streamingAssetsPath, _fileName);
-            #endif
+#endif
             if (str != "") return str;
-            
-            #if UNITY_STANDALONE_WIN
+#if (UNITY_STANDALONE_WIN)
             check = "Windows";
-            string filePath = Path.Combine(Application.dataPath, _fileName);
-            if (!File.Exists(filePath)) UnpackDatabase(filePath);
-            str = filePath;
-            #endif
+            str = Path.Combine(Application.dataPath, _fileName);
+            if(!File.Exists(str)) UnpackDatabase(str);
+#endif
             return str;
         }
 
@@ -110,7 +109,6 @@ namespace DataBase
                                       "kill_enemy INTEGER DEFAULT 0," +
                                       "count_chest INTEGER DEFAULT 0," +
                                       "rating INTEGER DEFAULT 0," +
-                                      "count_completion INTEGER DEFAULT 0," +
                                       "time TEXT DEFAULT 0," +
                                       "FOREIGN KEY (id_player) REFERENCES players (id_player)" +
                                       ");");
@@ -138,6 +136,7 @@ namespace DataBase
                                       ");");
         }
 
+        //Проверяет, есть ли нулевое прохождение (нулевое прохождение - прохождение, где было сделано ничего)
         public static bool GetTheFirstCompletion()
         {
             var check = false;
@@ -161,6 +160,7 @@ namespace DataBase
             return check;
         }
 
+        //Создаёт нулевое прохождение, если его нет
         public static void CreateTheFirstCompletion()
         {
             if (GetTheFirstCompletion()) return;
@@ -276,43 +276,6 @@ namespace DataBase
                                       "SET id_completion = " + best + " " +
                                       "WHERE id_player = " + idPlayer + ";");
         }
-
-        //Получение списка топ 7 игроков и данного
-        // public static List<Element> GetList(int idPlayer)
-        // {
-        //     //List<Element> list = new List<Element>();
-        //
-        //     var rating = Parse(ExecuteQueryWithAnswer(
-        //         "SELECT id_player, nickname, time, kill_enemy, rating FROM players " +
-        //         "JOIN best_completion ON players.id_player = best_completion.id_player " +
-        //         "JOIN completions ON completions.id_completion = best_completion.id_completion "
-        //         ));
-        //     
-        //     OpenConnection();
-        //     
-        //     var sqlCommand = "SELECT id_player, nickname, time, kill_enemy, rating FROM players " +
-        //                      "JOIN best_completion ON players.id_player = best_completion.id_player, " +
-        //                      "JOIN completions ON completions.id_completion = best_completion.id_completion " +
-        //                      "GROUP BY rating DESC " +
-        //                      "LIMIT 7;" ;
-        //     _command.CommandText = sqlCommand;
-        //     using (var reader = _command.ExecuteReader())
-        //     {
-        //         while (reader.Read())
-        //         {
-        //             /*var el = new Element();
-        //             el.id = Parse(reader["id_player"].ToString());
-        //             el.nickname = reader["nickname"].ToString();
-        //             el.rating = Parse(reader["rating"].ToString());
-        //             el.time = reader["time"].ToString();
-        //             el.killEnemy = Parse(reader["kill_enemy"].ToString());
-        //             list.Add(el);*/
-        //         }
-        //         reader.Close();
-        //     }
-        //
-        //     //return list;
-        // }
 
         //Получение информации об игроке
         public static Element GetInfoPlayer(int idPlayers)

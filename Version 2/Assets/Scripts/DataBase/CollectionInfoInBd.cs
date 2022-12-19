@@ -16,16 +16,20 @@ namespace DataBase
         private bool _bossIdDead;
         private Boss _boss;
 
+        //Вызывается во время 1 кадра
         private void Start()
         {
             time = 0;
             _boss = GameObject.FindWithTag("Boss").GetComponent<Boss>();
         }
+        
+        //Вызывается постоянно во время каждого кадра
         private void Update()
         {
+            KillBoss();
             time += Time.deltaTime;
         }
-
+        
         public void TakingDamage(float damage)
         {
             incomingDamage += damage;
@@ -65,11 +69,11 @@ namespace DataBase
             death++;
         }
 
-        public void CountRating()
+        private void CountRating()
         {
             var ratingCount = incomingDamage + countKillBlackBandit * 15f + countKillWhiteBandit * 50f +
                               countKillBoss * 200f + countOpenChest * 5f;
-            if (incomingDamage == 0) ratingCount *= 1.3f;
+            if (incomingDamage == 0 && countKillBoss > 0) ratingCount *= 1.3f;
             switch (death)
             {
                 case 1:
@@ -78,11 +82,10 @@ namespace DataBase
                 case 2:
                     ratingCount /= 1.3f;
                     break;
-                default:
-                    break;
             }
 
             rating = Convert.ToInt32(ratingCount);
+            if (rating < 0) rating = 0;
         }
 
         public void SetInBd()
