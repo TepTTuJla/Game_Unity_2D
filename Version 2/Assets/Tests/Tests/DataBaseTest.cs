@@ -55,7 +55,6 @@ public class DataBaseTest
     public void DataBaseTest3CheckCreateNullCompletion()
     {
         MyDataBase.CreateTheFirstCompletion();
-        MyDataBase.CreateTheFirstCompletion();
         var checkNull = MyDataBase.GetTheFirstCompletion();
         var table = MyDataBase.GetTable("SELECT id_player, incoming_damage, outcoming_damage, kill_enemy, count_chest, rating, time FROM completions WHERE id_completion = 1");
         DataRow[] rows = table.Select();
@@ -85,12 +84,14 @@ public class DataBaseTest
         Assert.IsTrue(MyDataBase.CheckPlayerInBd(_playerNickname));
 
         var idPlayer = MyDataBase.GetIdPlayer(_playerNickname);
+        
         var tableKiller =
             MyDataBase.GetTable("SELECT white_bandit_count, black_bandit_count, boss_count FROM killer_list WHERE id_player = " +
                                 idPlayer);
+        
         DataRow[] rowsKiller = tableKiller.Select();
         
-        for(int i = 0; i < rowsKiller.Length ; i++)
+        for (int i = 0; i < rowsKiller.Length ; i++)
         {
             Assert.AreEqual(Int32.Parse(rowsKiller[i]["white_bandit_count"].ToString()), 0);
             Assert.AreEqual(Int32.Parse(rowsKiller[i]["black_bandit_count"].ToString()), 0);

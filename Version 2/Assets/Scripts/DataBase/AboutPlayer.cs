@@ -17,6 +17,7 @@ public class AboutPlayer : MonoBehaviour
     public void Open()
     {
         Element el = MyDataBase.GetInfoPlayer(SqlScript.idPlayer);
+        Debug.Log(SqlScript.idPlayer);
         nickname.text = el.nickname;
         //countEnemies.text = el.killEnemy.ToString();
         countBlack.text = el.countBlackBanditKill.ToString();

@@ -99848,8 +99848,8 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
       - m_Target: {fileID: 2095150443}
-        m_TargetAssemblyTypeName: PauseMenu, Assembly-CSharp
-        m_MethodName: ExitGame
+        m_TargetAssemblyTypeName: PauseMenu, Scripts
+        m_MethodName: InMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

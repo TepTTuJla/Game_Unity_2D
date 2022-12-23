@@ -97,15 +97,15 @@ namespace DataBase
         {
             OpenConnection();
 
-            SqliteDataAdapter adapter = new SqliteDataAdapter(query, _dbConnection);
+            var adapter = new SqliteDataAdapter(query, _dbConnection);
 
-            DataSet DS = new DataSet();
-            adapter.Fill(DS);
+            var ds = new DataSet();
+            adapter.Fill(ds);
             adapter.Dispose();
 
             CloseConnection();
 
-            return DS.Tables[0];
+            return ds.Tables[0];
         }
 
         //Создание таблиц
@@ -190,7 +190,10 @@ namespace DataBase
             var check = false;
             OpenConnection();
 
-            var sqlCommand = "SELECT id_player FROM players WHERE nickname = '" + nickname + "';";
+            var sqlCommand = "SELECT id_player FROM players WHERE nickname = @nickname;";
+            SqliteParameter nick = new SqliteParameter("@nickname", nickname);
+            _command.CommandText = sqlCommand;
+            _command.Parameters.Add(nick);
 
             _command.CommandText = sqlCommand;
             using (var reader = _command.ExecuteReader())
@@ -212,25 +215,13 @@ namespace DataBase
         public static int GetIdPlayer(string nickname)
         {
             var id = 0;
-            using (var connection = new SqliteConnection(_path))
-            {
-                connection.Open();
-                using (var command = connection.CreateCommand())
-                {
-                    command.CommandText = "SELECT id_player FROM players WHERE nickname = '" + nickname + "';";
-                    using (IDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            id = Parse(reader["id_player"].ToString());
-                        }
-
-                        reader.Close();
-                    }
-                }
-
-                connection.Close();
-            }
+            OpenConnection();
+            var sqlCommand = "SELECT id_player FROM players WHERE nickname = @nickname;";
+            SqliteParameter nick = new SqliteParameter("@nickname", nickname);
+            _command.CommandText = sqlCommand;
+            _command.Parameters.Add(nick);
+            id = Parse(_command.ExecuteScalar().ToString());
+            CloseConnection();
 
             return id;
         }
@@ -238,21 +229,44 @@ namespace DataBase
         //Регистрация игроков
         public static void RegisterPlayer(string nickname)
         {
-            ExecuteQueryWithoutAnswer("INSERT INTO players (nickname) " +
-                                      "VALUES ('" + nickname + "');");
-
+            OpenConnection();
+            var sqlCommand = "INSERT INTO players (nickname) " +
+                             "VALUES (@nickname);";
+            SqliteParameter idPara = new SqliteParameter("@nickname", nickname);
+            _command.CommandText = sqlCommand;
+            _command.Parameters.Add(idPara);
+            _command.ExecuteNonQuery();
+            CloseConnection();
             var id = GetIdPlayer(nickname);
 
-            ExecuteQueryWithoutAnswer(
+            sqlCommand = 
                 "INSERT INTO killer_list (id_player, white_bandit_count, black_bandit_count, boss_count) " +
-                "VALUES (" + id + ", 0, 0, 0);");
+                "VALUES (@id, 0, 0, 0);";
+            OpenConnection();
+            _command.CommandText = sqlCommand;
+            SqliteParameter idParam = new SqliteParameter("@id", id);
+            _command.Parameters.Add(idParam);
+            _command.ExecuteNonQuery();
+            CloseConnection();
 
-            ExecuteQueryWithoutAnswer(
+            sqlCommand = 
                 "INSERT INTO player_info (id_player, count_completions, incoming_damage, outcoming_damage) " +
-                "VALUES (" + id + ", 0, 0, 0);");
+                "VALUES (@id, 0, 0, 0);";
+            OpenConnection();
+            _command.CommandText = sqlCommand;
+            idParam = new SqliteParameter("@id", id);
+            _command.Parameters.Add(idParam);
+            _command.ExecuteNonQuery();
+            CloseConnection();
 
-            ExecuteQueryWithoutAnswer("INSERT INTO best_completion (id_player, id_completion) " +
-                                      "VALUES (" + id + ", 1);");
+            sqlCommand = "INSERT INTO best_completion (id_player, id_completion) " +
+                                      "VALUES (@id, 1);";
+            OpenConnection();
+            _command.CommandText = sqlCommand;
+            idParam = new SqliteParameter("@id", id);
+            _command.Parameters.Add(idParam);
+            _command.ExecuteNonQuery();
+            CloseConnection();
         }
 
         //Добавление информации о прохождении в таблицу
@@ -272,48 +286,124 @@ namespace DataBase
             var seconds = time % 60;
             var minutes = (time - seconds) / 60;
             var timeStr = String.Format(Math.Round(minutes, 0) + " Minute " + Math.Round(seconds, 0) + " Seconds");
-            ExecuteQueryWithoutAnswer(
+            var sqlCommand = 
                 "INSERT INTO completions (id_player, incoming_damage, outcoming_damage, kill_enemy, count_chest, rating, time) " +
-                "VALUES ( " + idPlayer + ", " + incomingDamage + ", " + outcomingDamage + ", " + killEnemy + ", " +
-                countChest + ", " + rating + ", '" + timeStr + "');");
+                "VALUES (@id, @incoming, @outcoming, @killEnemy, @countChest, @rating, @time);";
+            OpenConnection();
+            _command.CommandText = sqlCommand;
+            var parameter = new SqliteParameter("@id", idPlayer);
+            _command.Parameters.Add(parameter);
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@incoming", incomingDamage);
+            _command.Parameters.Add(parameter);
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@outcoming", outcomingDamage);
+            _command.Parameters.Add(parameter);
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@killEnemy", killEnemy);
+            _command.Parameters.Add(parameter);
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@countChest", countChest);
+            _command.Parameters.Add(parameter);
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@rating", rating);
+            _command.Parameters.Add(parameter);
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@time", timeStr);
+            _command.Parameters.Add(parameter);
+            _command.ExecuteNonQuery();
+            CloseConnection();
+            
+            sqlCommand = "UPDATE killer_list " +
+                                      "SET white_bandit_count = white_bandit_count + @killWhite, " +
+                                      "black_bandit_count = black_bandit_count + @killBlack, " +
+                                      "boss_count = boss_count + @killBoss " +
+                                      "WHERE id_player = @id;";
+            OpenConnection();
+            parameter = new SqliteParameter("@id", idPlayer);
+            _command.Parameters.Add(parameter);
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@killWhite", killWhiteBandit);
+            _command.Parameters.Add(parameter);
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@killBlack", killBlackBandit);
+            _command.Parameters.Add(parameter);
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@killBoss", killBoss);
+            _command.Parameters.Add(parameter);
+            _command.CommandText = sqlCommand;
+            _command.ExecuteNonQuery();
+            CloseConnection();
 
-            ExecuteQueryWithoutAnswer("UPDATE killer_list " +
-                                      "SET white_bandit_count = white_bandit_count + " + killWhiteBandit + ", " +
-                                      "black_bandit_count = black_bandit_count + " + killBlackBandit + ", " +
-                                      "boss_count = boss_count + " + killBoss + " " +
-                                      "WHERE id_player = " + idPlayer + "; ");
-
-            ExecuteQueryWithoutAnswer("UPDATE player_info " +
+            sqlCommand = "UPDATE player_info " +
                                       "SET count_completions = count_completions + 1, " +
-                                      "incoming_damage = incoming_damage + " + incomingDamage + ", " +
-                                      "outcoming_damage = outcoming_damage + " + outcomingDamage + " " +
-                                      "WHERE id_player = " + idPlayer + "; ");
+                                      "incoming_damage = incoming_damage + @incoming, " +
+                                      "outcoming_damage = outcoming_damage + @outcoming " +
+                                      "WHERE id_player = @id;";
+            OpenConnection();
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@id", idPlayer);
+            _command.Parameters.Add(parameter);
+            parameter = new SqliteParameter("@incoming", incomingDamage);
+            _command.Parameters.Add(parameter);
+            parameter = new SqliteParameter("@outcoming", outcomingDamage);
+            _command.Parameters.Add(parameter);
+            _command.ExecuteNonQuery();
+            CloseConnection();
 
-            var bestCompetition = ExecuteQueryWithAnswer("SELECT id_completion FROM completions " +
-                                                         "WHERE id_player = " + idPlayer + " " +
+            sqlCommand = "SELECT id_completion FROM completions " +
+                                                         "WHERE id_player = @id " +
                                                          "ORDER BY rating DESC " +
-                                                         "LIMIT 1;");
+                                                         "LIMIT 1;";
+            OpenConnection();
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@id", idPlayer);
+            _command.Parameters.Add(parameter);
+            var bestCompetition = Parse(_command.ExecuteScalar().ToString());
+            CloseConnection();
 
-            var best = Parse(bestCompetition);
-            ExecuteQueryWithoutAnswer("UPDATE best_completion " +
-                                      "SET id_completion = " + best + " " +
-                                      "WHERE id_player = " + idPlayer + ";");
+            sqlCommand = "UPDATE best_completion " +
+                                      "SET id_completion = @best " +
+                                      "WHERE id_player = @id;";
+            OpenConnection();
+            _command.CommandText = sqlCommand;
+            parameter = new SqliteParameter("@id", idPlayer);
+            _command.Parameters.Add(parameter);
+            parameter = new SqliteParameter("@best", bestCompetition);
+            _command.Parameters.Add(parameter);
+            _command.ExecuteNonQuery();
+            CloseConnection();
         }
 
         //Получение информации об игроке
         public static Element GetInfoPlayer(int idPlayers)
         {
-            var countCompletion = Parse(ExecuteQueryWithAnswer(
-                "SELECT count_completions FROM player_info " +
-                "WHERE id_player = " + idPlayers + " ;"));
+            
+            OpenConnection();
+            var sqlCommand2 = "SELECT count_completions FROM player_info " +
+                              "WHERE id_player = @id;";
+            _command.CommandText = sqlCommand2;
+            SqliteParameter idPara = new SqliteParameter("@id", idPlayers);
+            _command.Parameters.Add(idPara);
+            
             var maxRating = 0;
+            var countCompletion = Parse(_command.ExecuteScalar().ToString());
+            CloseConnection();
+            
             if (countCompletion != 0)
-                maxRating = Parse(ExecuteQueryWithAnswer(
-                    "SELECT rating FROM completions " +
-                    "WHERE id_player = " + idPlayers + " " +
-                    "ORDER BY rating DESC " +
-                    "LIMIT 1;"
-                ));
+            {
+                OpenConnection();
+                var sqlCommand1 = "SELECT rating FROM completions " +
+                                 "WHERE id_player = @id " +
+                                 "ORDER BY rating DESC " +
+                                 "LIMIT 1;";
+                _command.CommandText = sqlCommand1;
+                SqliteParameter idPar = new SqliteParameter("@id", idPlayers.ToString());
+                _command.Parameters.Add(idPar);
+                maxRating = Parse(_command.ExecuteScalar().ToString());
+                CloseConnection();
+            }
+
             var incomingDamage = 0;
             var nickname = "";
             var outcomingDamage = 0;
@@ -327,8 +417,11 @@ namespace DataBase
             var sqlCommand =
                 "SELECT nickname, white_bandit_count, black_bandit_count, boss_count, count_completions, incoming_damage, outcoming_damage FROM players " +
                 "JOIN killer_list ON players.id_player = killer_list.id_player " +
-                "JOIN player_info ON player_info.id_player = players.id_player;";
+                "JOIN player_info ON player_info.id_player = players.id_player " +
+                "WHERE players.id_player = @id;";
             _command.CommandText = sqlCommand;
+            SqliteParameter idParametr = new SqliteParameter("@id", idPlayers.ToString());
+            _command.Parameters.Add(idParametr);
             using (var reader = _command.ExecuteReader())
             {
                 while (reader.Read())
