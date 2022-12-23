@@ -44,6 +44,7 @@ public class DataBaseTest
         Assert.AreEqual(Int32.Parse(count5), 1);
     }
 
+    //Проверка, что нулевого прохождения нет
     [Test]
     public void DataBaseTest2CheckNullCompletion()
     {
@@ -51,6 +52,7 @@ public class DataBaseTest
         Assert.IsFalse(check);
     }
 
+    //Проверка, что создалось нулевое прохождение (нулевое прохождение - это прохождение, в которох все хначения 0)
     [Test]
     public void DataBaseTest3CheckCreateNullCompletion()
     {
@@ -71,12 +73,14 @@ public class DataBaseTest
         Assert.IsTrue(checkNull);
     }
 
+    //Проверка, что игрока с рандомным ником в таблице нет
     [Test]
     public void DataBaseTest4CheckPlayerInTable()
     {
         Assert.IsFalse(MyDataBase.CheckPlayerInBd("dsjindsjcndsc"));
     }
 
+    //Проверка, что можно зарегистрировать игрока в таблицу и вывод содержимого о нём 
     [Test]
     public void DataBaseTest5RegisterAndCheckPlayerInTable()
     {
@@ -118,6 +122,7 @@ public class DataBaseTest
         Assert.AreEqual(Int32.Parse(idBestCompletion), 1);
     }
 
+    //Проверка, что можно добавить прохождение в таблицу
     [Test]
     public void DataBaseTest6AddCompletionInTable()
     {
@@ -153,6 +158,7 @@ public class DataBaseTest
         }
     }
 
+    //Проверка, что данные о количествах убийств выводятся верно
     [Test]
     public void DataBaseTest7AddInKillerTable()
     {
@@ -171,6 +177,7 @@ public class DataBaseTest
         }
     }
 
+    //Проверка, что данные о игроке выводятся верно
     [Test]
     public void DataBaseTest8AddInInfoTable()
     {
@@ -190,6 +197,7 @@ public class DataBaseTest
         }
     }
 
+    //Проверка, что выводится правильная информация об игроке
     [Test]
     public void DataBaseTest9CheckAboutPlayer()
     {
